@@ -10,9 +10,7 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { Usuario } from "../../interfaces/Users";
-import { rows } from "../../data/DataUsers";
 import { serviceUsuarios } from './serviceUsuarios';
-
 
 const theme = createTheme();
 
@@ -33,6 +31,7 @@ export default function SignIn() {
         switch (response.data.perfil) {
           case 10000:
             navigate('/admin', { state: { user: response } });
+            console.log(response.data)
             break;
           case 10001:
             navigate('/supervisor', { state: { user: response } });

@@ -1,18 +1,61 @@
-import { useLocation } from "react-router-dom";
-import React, { useState } from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box } from "@mui/material";
 import { rows } from '../../data/DataOrdenes';
-import Button from '@mui/material/Button';
-import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
 import ServicesForm from '../Forms/ServicesForm';
 import { Modal } from '@mui/material';
 import BackupIcon from '@mui/icons-material/Backup';
-
+import StopIcon from '@mui/icons-material/Stop';
+import React, { useState, useEffect } from "react";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { useLocation } from "react-router-dom";
+import { Button } from '@mui/material';
+import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
+import { Data, ApiResponse } from '../../interfaces/Ordenes';
+import axios, { AxiosResponse } from 'axios';
 
 const OrdersTableServices = () => {
+  const locationToken = useLocation();
+  const user = locationToken.state?.user;
+  const token: string = user.data.token
+  const ussr: string = user.data.userName
+  const [rows, setRows] = useState<Data[]>([]);
+  const [filteredRows, setFilteredRows] = useState<Data[]>([]);
+
+  useEffect(() => {
+    axios 
+      .get('http://wmonit.eastus.cloudapp.azure.com:5003/api/Orden', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      .then((response: AxiosResponse) => {
+        const apiResponse: ApiResponse = response.data;
+        const data: Data[] = apiResponse.data.map(item => {
+          return {
+            id: item.id,
+            numero: item.numero,
+            cliente: item.cliente,
+            contacto: item.contacto,
+            direccion: item.direccion,
+            areas: item.areas,
+            estado: item.estado,
+            supervisor: item.supervisor,
+            grupo: item.grupo,
+            eliminado: item.eliminado,
+            fecha: item.fecha,
+          };
+        });
+        setRows(data);
+        const filteredData = data.filter(row => row.grupo?.includes(ussr)).filter(row => row.estado === "Iniciado");
+        setFilteredRows(filteredData);
+        console.log(filteredRows);
+      })
+      .catch((error: any) => {
+        console.error(error);
+      });
+  }, [token]);
+
   const [open, setOpen] = useState(false);
 
-  const handleOpen= () => {
+  const handleOpen = () => {
     setOpen(true);
   };
 
@@ -37,11 +80,6 @@ const OrdersTableServices = () => {
       alert("La geolocalización no está disponible en este navegador.");
     }
   };
-  
-
-  const location = useLocation();
-  const user = location.state?.user;
-  const filteredRows = rows.filter(row => row.grupo?.includes(user?.nombre)).filter(row => row.estado === "Iniciado");
 
   return (
     <TableContainer component={Paper}>
@@ -62,14 +100,14 @@ const OrdersTableServices = () => {
           {filteredRows.map((filteredRow) => (
             <React.Fragment key={filteredRow.id}>
               {filteredRow.areas.map((area) => (
-                <TableRow key={area.Nombre}>
-                  <TableCell align="left" style={{ color: "#1976D2", fontWeight: 'bold', width: "90px" }} >{filteredRow.orden}</TableCell>
+                <TableRow key={area.nombre}>
+                  <TableCell align="left" style={{ color: "#1976D2", fontWeight: 'bold', width: "90px" }} >{filteredRow.numero}</TableCell>
                   <TableCell >{filteredRow.contacto}</TableCell>
-                  <TableCell>{area.Nombre}</TableCell>
-                  <TableCell>{area.Observaciones}</TableCell>
+                  <TableCell>{area.nombre}</TableCell>
+                  <TableCell>{area.observaciones}</TableCell>
                   <TableCell>{filteredRow.supervisor}</TableCell>
                   <TableCell>{filteredRow.grupo?.join(", ")}</TableCell>
-                  <TableCell align="right"><Button onClick={handleStart}variant="outlined" startIcon={<PlayCircleFilledWhiteIcon />}>
+                  <TableCell align="right"><Button onClick={handleStart} variant="outlined" startIcon={<PlayCircleFilledWhiteIcon />}>
                     Iniciar
                   </Button>
                   </TableCell>
@@ -83,7 +121,7 @@ const OrdersTableServices = () => {
           ))}
         </TableBody>
         <Modal open={open} onClose={handleClose} >
-          <ServicesForm/>
+          <ServicesForm />
         </Modal>
       </Table>
     </TableContainer>

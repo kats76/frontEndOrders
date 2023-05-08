@@ -19,8 +19,6 @@ import DialogActions from '@mui/material/DialogActions';
 import { useState } from 'react';
 import Webcam from "react-webcam";
 
-
-
 const theme = createTheme();
 
 export default function SevicesForm() {
@@ -141,7 +139,8 @@ export default function SevicesForm() {
 
               <Grid item xs={12} sx={{ paddingBottom: "10px" }}>
                 <Button
-                  type="submit"
+                // onclick
+                //   type="submit"
                   fullWidth
                   variant="contained"
                   sx={{ mt: 3, mb: 2 }}
